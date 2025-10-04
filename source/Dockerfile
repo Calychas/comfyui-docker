@@ -1,18 +1,20 @@
 
 # Defines the versions of ComfyUI, ComfyUI Manager, and PyTorch to use
-ARG COMFYUI_VERSION=v0.3.49
-ARG COMFYUI_MANAGER_VERSION=3.35
-ARG PYTORCH_VERSION=2.8.0-cuda12.9-cudnn9-runtime
+ARG COMFYUI_VERSION=v0.3.62
+ARG COMFYUI_MANAGER_VERSION=ca4b61c5f0406d66cd2bf0f074842e1f6f44c826
+ARG PYTORCH_IMAGE=rocm/pytorch
+ARG PYTORCH_VERSION=rocm7.0_ubuntu24.04_py3.12_pytorch_release_2.8.0
 
 # This image is based on the latest official PyTorch image, because it already contains CUDA, CuDNN, and PyTorch
-FROM pytorch/pytorch:${PYTORCH_VERSION}
+FROM ${PYTORCH_IMAGE}:${PYTORCH_VERSION}
 
 # Installs Git, because ComfyUI and the ComfyUI Manager are installed by cloning their respective Git repositories
 RUN apt update --assume-yes && \
     apt install --assume-yes \
         git \
         sudo \
-        libgl1-mesa-glx \
+        libgl1 \ 
+        libglx-mesa0 \
         libglib2.0-0 && \
     rm -rf /var/lib/apt/lists/*
 
@@ -36,7 +38,8 @@ RUN git clone --depth=1 https://github.com/Comfy-Org/ComfyUI-Manager.git /opt/co
 # Installs the required Python packages for both ComfyUI and the ComfyUI Manager
 RUN pip install \
     --requirement /opt/comfyui/requirements.txt \
-    --requirement /opt/comfyui-manager/requirements.txt
+    --requirement /opt/comfyui-manager/requirements.txt \
+    pyyaml
 
 # Sets the working directory to the ComfyUI directory
 WORKDIR /opt/comfyui
